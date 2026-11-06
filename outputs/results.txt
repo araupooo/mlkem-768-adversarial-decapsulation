@@ -1,0 +1,49 @@
+ML-KEM-768 adversarial decapsulation -- summary
+generated_utc: 2026-11-06T17:35:48Z
+total_cases: 2100
+cross_implementation all_three_agree_by_transitivity: True
+
+   25  go-stdlib-crypto-mlkem|CORRUPT-DK-D|IMPLICIT_REJECT
+   25  go-stdlib-crypto-mlkem|CORRUPT-DK-H|NOT_APPLICABLE
+   25  go-stdlib-crypto-mlkem|CORRUPT-DK-Z|MATCH
+   75  go-stdlib-crypto-mlkem|MALFORMED-1BIT|IMPLICIT_REJECT
+   25  go-stdlib-crypto-mlkem|MALFORMED-MULTIBIT|IMPLICIT_REJECT
+   25  go-stdlib-crypto-mlkem|REPLAY-DETERMINISM|MATCH
+   75  go-stdlib-crypto-mlkem|SYNTHETIC-CT|IMPLICIT_REJECT
+   25  go-stdlib-crypto-mlkem|VALID|MATCH
+   25  go-stdlib-crypto-mlkem|WRONG-KEY|IMPLICIT_REJECT
+  175  go-stdlib-crypto-mlkem|WRONG-LENGTH-CT|ERROR
+   25  go-stdlib-crypto-mlkem|WRONG-LENGTH-DK|ERROR
+   25  kyber-ref|CORRUPT-DK-D|IMPLICIT_REJECT
+   25  kyber-ref|CORRUPT-DK-H|IMPLICIT_REJECT
+   25  kyber-ref|CORRUPT-DK-Z|MATCH
+   75  kyber-ref|MALFORMED-1BIT|IMPLICIT_REJECT
+   25  kyber-ref|MALFORMED-MULTIBIT|IMPLICIT_REJECT
+   25  kyber-ref|REPLAY-DETERMINISM|MATCH
+   75  kyber-ref|SYNTHETIC-CT|IMPLICIT_REJECT
+   25  kyber-ref|VALID|MATCH
+   25  kyber-ref|WRONG-KEY|IMPLICIT_REJECT
+  175  kyber-ref|WRONG-LENGTH-CT|NOT_INVOKED
+   25  kyber-ref|WRONG-LENGTH-DK|NOT_INVOKED
+   25  liboqs|CORRUPT-DK-D|IMPLICIT_REJECT
+   25  liboqs|CORRUPT-DK-H|IMPLICIT_REJECT
+   25  liboqs|CORRUPT-DK-Z|MATCH
+   75  liboqs|MALFORMED-1BIT|IMPLICIT_REJECT
+   25  liboqs|MALFORMED-MULTIBIT|IMPLICIT_REJECT
+   25  liboqs|REPLAY-DETERMINISM|MATCH
+   75  liboqs|SYNTHETIC-CT|IMPLICIT_REJECT
+   25  liboqs|VALID|MATCH
+   25  liboqs|WRONG-KEY|IMPLICIT_REJECT
+  175  liboqs|WRONG-LENGTH-CT|NOT_INVOKED
+   25  liboqs|WRONG-LENGTH-DK|NOT_INVOKED
+   25  pyca-cryptography|CORRUPT-DK-D|IMPLICIT_REJECT
+   25  pyca-cryptography|CORRUPT-DK-H|NOT_APPLICABLE
+   25  pyca-cryptography|CORRUPT-DK-Z|MATCH
+   75  pyca-cryptography|MALFORMED-1BIT|IMPLICIT_REJECT
+   25  pyca-cryptography|MALFORMED-MULTIBIT|IMPLICIT_REJECT
+   25  pyca-cryptography|REPLAY-DETERMINISM|MATCH
+   75  pyca-cryptography|SYNTHETIC-CT|IMPLICIT_REJECT
+   25  pyca-cryptography|VALID|MATCH
+   25  pyca-cryptography|WRONG-KEY|IMPLICIT_REJECT
+  175  pyca-cryptography|WRONG-LENGTH-CT|ERROR
+   25  pyca-cryptography|WRONG-LENGTH-DK|ERROR
