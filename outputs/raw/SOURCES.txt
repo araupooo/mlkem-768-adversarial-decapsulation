@@ -1,0 +1,2 @@
+liboqs: f4b96220e4bd208895172acc4fedb5a191d9f5b1 (branch 0.12.0)
+kyber-ref: 3edd5af5991927164edd4aacebfcbee00b8064e7
