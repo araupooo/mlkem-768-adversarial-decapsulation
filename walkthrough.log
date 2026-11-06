@@ -1,0 +1,16 @@
+ML-KEM-768 adversarial decapsulation assessment -- build/run walkthrough
+2026-11-07 00:16 WIB cycle 8 assigned; 00:17-00:37 WIB research + build; 00:35 WIB harness run.
+- FIPS 203 fetched from nvlpubs.nist.gov (NIST.FIPS.203.pdf, 1,252,341 B, HTTP 200).
+- PyPI "oqs" 0.10.2 is an unrelated "Open Quick Script" package (name collision); uninstalled.
+- liboqs 0.12.0 cloned (open-quantum-safe/liboqs, f4b9622), cmake build, 100%, 0 errors.
+- Go 1.24.6 downloaded from go.dev (78,583,176 B); stdlib crypto/mlkem driver built.
+- pq-crystals/kyber cloned (3edd5af); reference driver compiled with gcc -DKYBER_K=3; round-trip verified.
+- pyca/cryptography 50.0.2 installed in /tmp/mlkem-prep-venv; ML-KEM-768 API verified
+  (module mlkem, classes MLKEM768PrivateKey; encapsulate() returns (ss, ct)).
+- Harness src/run_harness.py: 3 bugs found and fixed during development
+  (encap (ss, ct) order; keypair (sk, pk) order; ctypes NUL terminator on exactly-sized buffers).
+- Harness run 2026-11-06T17:35:48Z-17:35:49Z, exit 0, TOTAL CASES 2100,
+  CROSS-IMPL ALL THREE AGREE (by transitivity): True.
+- Cross-impl leg 1 (pyca<->Go shared seed) proven in a separate pre-run: identical ss 84117085...
+- Key API fact found: pyca stores the dk as the 64-byte seed; private_bytes_raw() returns the
+  seed, not the 2400-byte expanded dk; no public API exports the expanded dk.

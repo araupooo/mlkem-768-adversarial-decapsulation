@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML-KEM-768 Adversarial Decapsulation Assessment</title>
+<style>
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:0 auto;max-width:960px;padding:24px;line-height:1.55;color:#1a1a1a}
+h1{font-size:1.7em;line-height:1.25}h2{border-bottom:1px solid #ccc;padding-bottom:4px;margin-top:2em}
+table{border-collapse:collapse;width:100%;margin:12px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;font-size:.92em}
+th{background:#f0f0f0}.num{text-align:right}.mono{font-family:ui-monospace,Menlo,monospace;font-size:.88em;word-break:break-all}
+.score{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}.score div{background:#f4f4f4;border:1px solid #ddd;border-radius:6px;padding:10px 14px}
+.score b{font-size:1.4em;display:block}.sev{font-weight:700}.low{color:#205c8a}.info{color:#5b6570}.pos{color:#0f5c4d}
+code{background:#f0f0f0;padding:1px 4px;border-radius:3px}.small{color:#555;font-size:.9em}
+</style>
+</head>
+<body>
+<h1>ML-KEM-768 Adversarial Decapsulation Assessment</h1>
+<p>Negative decapsulation behavior of ML-KEM-768 (FIPS 203) across four
+implementations, measured with a runnable harness. Run:
+2026-11-06T17:35:48Z–17:35:49Z (2026-11-07 00:35:48–00:35:49 WIB).
+Harness: <code>src/run_harness.py</code>. Full machine-readable results:
+<code>outputs/results.json</code> (2100 cases). Unedited log:
+<code>outputs/run_harness.log</code>. Digests: <code>outputs/SHA256SUMS</code>.</p>
+
+<div class="score">
+<div><b>2100</b>cases run</div>
+<div><b>300</b>MATCH</div>
+<div><b>950</b>implicit rejections</div>
+<div><b>400</b>errors (input checks)</div>
+<div><b>400</b>not invoked (length guard)</div>
+<div><b>50</b>not applicable</div>
+<div><b>0</b>unexpected matches / mismatches / crashes</div>
+</div>
+
+<h2>Implementations</h2>
+<table>
+<tr><th>ID</th><th>Implementation</th><th>Version</th><th>Key encoding</th></tr>
+<tr><td>A</td><td>pyca/cryptography</td><td>50.0.2</td><td>ek 1184 B; dk as 64-byte seed (d‖z)</td></tr>
+<tr><td>B</td><td>liboqs (ML-KEM-768, built from source)</td><td>0.12.0, commit f4b9622</td><td>ek 1184 B; sk 2400 B expanded</td></tr>
+<tr><td>C</td><td>Go stdlib crypto/mlkem</td><td>go1.24.6</td><td>ek 1184 B; dk as 64-byte seed (d‖z)</td></tr>
+<tr><td>D</td><td>pq-crystals/kyber Kyber768 reference (round-3, pre-FIPS 203 — lineage reference only)</td><td>commit 3edd5af</td><td>pk 1184 B; sk 2400 B</td></tr>
+</table>
+<p class="small">D implements round-3 Kyber768, not FIPS 203 ML-KEM: its shared secrets
+are not comparable with A/B/C. Only its behavioral class outcomes are compared.</p>
+
+<h2>Negative-test matrix</h2>
+<p>25 fresh keypairs per implementation. Outcome legend: <b>MATCH</b> —
+decapsulated secret equals the encapsulation secret. <b>IMPLICIT_REJECT</b> —
+a 32-byte secret different from the valid secret, no error (FIPS 203 §6.3,
+Algorithm 18). <b>ERROR</b> — the API raised an exception (type and message
+recorded verbatim in the log). <b>NOT_INVOKED</b> — the harness length guard
+refused to call a fixed-size C API with a wrong-length input (no C call was
+made). <b>NOT_APPLICABLE</b> — the key encoding has no stored region for that probe.</p>
+
+<h3>A — pyca/cryptography 50.0.2</h3>
+<table>
+<tr><th>Class</th><th class="num">n</th><th>Outcome</th><th class="num">Count</th></tr>
+<tr><td>VALID</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>MALFORMED-1BIT</td><td class="num">75</td><td>IMPLICIT_REJECT</td><td class="num">75</td></tr>
+<tr><td>MALFORMED-MULTIBIT</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>SYNTHETIC-CT</td><td class="num">75</td><td>IMPLICIT_REJECT</td><td class="num">75</td></tr>
+<tr><td>WRONG-KEY</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-D</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-Z</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-H</td><td class="num">25</td><td>NOT_APPLICABLE</td><td class="num">25</td></tr>
+<tr><td>REPLAY-DETERMINISM</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>WRONG-LENGTH-CT</td><td class="num">175</td><td>ERROR:ValueError — “Invalid ML-KEM-768 ciphertext”</td><td class="num">175</td></tr>
+<tr><td>WRONG-LENGTH-DK</td><td class="num">25</td><td>ERROR:ValueError — “An ML-KEM-768 seed is 64 bytes long” (at load)</td><td class="num">25</td></tr>
+</table>
+
+<h3>B — liboqs 0.12.0</h3>
+<table>
+<tr><th>Class</th><th class="num">n</th><th>Outcome</th><th class="num">Count</th></tr>
+<tr><td>VALID</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>MALFORMED-1BIT</td><td class="num">75</td><td>IMPLICIT_REJECT</td><td class="num">75</td></tr>
+<tr><td>MALFORMED-MULTIBIT</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>SYNTHETIC-CT</td><td class="num">75</td><td>IMPLICIT_REJECT</td><td class="num">75</td></tr>
+<tr><td>WRONG-KEY</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-D</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-Z</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-H</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>REPLAY-DETERMINISM</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>WRONG-LENGTH-CT</td><td class="num">175</td><td>NOT_INVOKED (fixed-size C API; wrapper enforces §7.3)</td><td class="num">175</td></tr>
+<tr><td>WRONG-LENGTH-DK</td><td class="num">25</td><td>NOT_INVOKED (fixed-size C API; wrapper enforces §7.3)</td><td class="num">25</td></tr>
+</table>
+
+<h3>C — Go 1.24.6 stdlib crypto/mlkem</h3>
+<table>
+<tr><th>Class</th><th class="num">n</th><th>Outcome</th><th class="num">Count</th></tr>
+<tr><td>VALID</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>MALFORMED-1BIT</td><td class="num">75</td><td>IMPLICIT_REJECT</td><td class="num">75</td></tr>
+<tr><td>MALFORMED-MULTIBIT</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>SYNTHETIC-CT</td><td class="num">75</td><td>IMPLICIT_REJECT</td><td class="num">75</td></tr>
+<tr><td>WRONG-KEY</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-D</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-Z</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-H</td><td class="num">25</td><td>NOT_APPLICABLE</td><td class="num">25</td></tr>
+<tr><td>REPLAY-DETERMINISM</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>WRONG-LENGTH-CT</td><td class="num">175</td><td>ERROR:RuntimeError — “mlkem: invalid ciphertext length” (174 cases; the 0-byte case is rejected by the Go driver’s argument check)</td><td class="num">175</td></tr>
+<tr><td>WRONG-LENGTH-DK</td><td class="num">25</td><td>ERROR:RuntimeError — “mlkem: invalid seed length” (at load)</td><td class="num">25</td></tr>
+</table>
+
+<h3>D — pq-crystals/kyber Kyber768 reference</h3>
+<table>
+<tr><th>Class</th><th class="num">n</th><th>Outcome</th><th class="num">Count</th></tr>
+<tr><td>VALID</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>MALFORMED-1BIT</td><td class="num">75</td><td>IMPLICIT_REJECT</td><td class="num">75</td></tr>
+<tr><td>MALFORMED-MULTIBIT</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>SYNTHETIC-CT</td><td class="num">75</td><td>IMPLICIT_REJECT</td><td class="num">75</td></tr>
+<tr><td>WRONG-KEY</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-D</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-Z</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>CORRUPT-DK-H</td><td class="num">25</td><td>IMPLICIT_REJECT</td><td class="num">25</td></tr>
+<tr><td>REPLAY-DETERMINISM</td><td class="num">25</td><td>MATCH</td><td class="num">25</td></tr>
+<tr><td>WRONG-LENGTH-CT</td><td class="num">175</td><td>NOT_INVOKED (fixed-size C API; wrapper enforces §7.3)</td><td class="num">175</td></tr>
+<tr><td>WRONG-LENGTH-DK</td><td class="num">25</td><td>NOT_INVOKED (fixed-size C API; wrapper enforces §7.3)</td><td class="num">25</td></tr>
+</table>
+
+<h2>Cross-implementation agreement (FIPS 203 ML-KEM-768 only)</h2>
+<ul>
+<li><b>Leg 1 (A ↔ C):</b> same 64-byte seed
+<code class="mono">000102…3e3f</code> loaded into pyca (<code>from_seed_bytes</code>)
+and Go (<code>NewDecapsulationKey768</code>); encapsulation by Go with pyca’s
+ek. Go encap ss, pyca decap ss, Go decap ss all identical
+(<code class="mono">c55d3f85cf91d9b105c1fe0fd26cafc8ee31a074fbfd93454d5aac891db42947</code>).
+<b>Agree: yes.</b></li>
+<li><b>Leg 2 (B ↔ A):</b> keypair generated by liboqs; encapsulation by pyca
+with liboqs’s ek (<code>from_public_bytes</code>); decapsulation by liboqs.
+pyca encap ss == liboqs decap ss
+(<code class="mono">bfa2c9673d165c1cf58aa15e19fb281212029c1002e6e441c9c1047ec41b02e9</code>).
+<b>Agree: yes.</b></li>
+<li><b>All three FIPS 203 implementations agree</b> (by transitivity of the two legs).</li>
+</ul>
+
+<h2>Findings</h2>
+<h3><span class="sev low">F-1 — Low:</span> liboqs 0.12.0 and the Kyber reference do not enforce the FIPS 203 §7.3 decapsulation-key hash check</h3>
+<p>Corrupting one byte inside the stored <code>H(ekPKE)</code> region of the
+expanded decapsulation key (byte 2350 of 2400) and decapsulating a valid
+ciphertext yields a wrong 32-byte shared secret in 25/25 cases for liboqs
+and 25/25 for the Kyber reference — no error is raised. §7.3 requires the
+hash check <code>H(dk[1152:2336]) == dk[2336:2368]</code> before
+<code>ML-KEM.Decaps</code> runs. §7.3 permits the key check to be performed by
+means other than the decapsulating party, so this is a validation gap, not a
+standard violation. Callers must perform the §7.3 hash check themselves
+before handing a decapsulation key to liboqs. The Kyber reference predates
+FIPS 203, so the §7.3 framing applies to liboqs. pyca and Go store the key
+as the 64-byte seed, so the probe does not apply to them.</p>
+
+<h3><span class="sev info">F-2 — Informational:</span> fixed-size C APIs cannot enforce the §7.3 length checks; the caller must</h3>
+<p>liboqs (<code>OQS_KEM_decaps</code>) and the Kyber reference
+(<code>crypto_kem_dec</code>) take fixed-size buffers and assume a 1088-byte
+ciphertext and a 2400-byte decapsulation key. The harness wrapper enforces
+the §7.3 length checks before every call (400 cases <code>NOT_INVOKED</code>,
+zero C calls with a wrong-length buffer). pyca and Go enforce the checks
+inside the API (wrong-length ciphertext → error; wrong-length key rejected
+at load).</p>
+
+<h3><span class="sev pos">F-3 — Positive:</span> implicit rejection is uniformly correct across all four implementations</h3>
+<p>950/950 adversarial-input cases returned a 32-byte rejection secret
+different from the valid secret, with no error and no crash — exactly FIPS
+203 §6.3 Algorithm 18. Corrupting the z-region leaves valid-ciphertext
+decapsulation unchanged (25/25 MATCH per implementation), because z is only
+consumed on the rejection path (<code>J(z‖c)</code>, step 7).</p>
+
+<h3><span class="sev pos">F-4 — Positive:</span> the three FIPS 203 implementations agree on shared secrets</h3>
+<p>Cross-implementation agreement holds in both legs (see above). No
+distinguishable failure, non-rejection secret, or crash was found in any of
+the 2100 cases.</p>
+
+<h2>Claim-to-evidence index (summary)</h2>
+<table>
+<tr><th>Claim</th><th>Statement</th><th>Evidence</th></tr>
+<tr><td>M-1</td><td>Valid ciphertext → valid shared secret (25/25 each)</td><td>results.json, class VALID</td></tr>
+<tr><td>M-2</td><td>Single-bit ciphertext flip → implicit rejection (75/75 each)</td><td>results.json, MALFORMED-1BIT</td></tr>
+<tr><td>M-3</td><td>Zeroed 32-byte ciphertext block → implicit rejection (25/25 each)</td><td>results.json, MALFORMED-MULTIBIT</td></tr>
+<tr><td>M-4</td><td>Synthetic ciphertexts (zero / 0xFF / random) → implicit rejection (75/75 each)</td><td>results.json, SYNTHETIC-CT</td></tr>
+<tr><td>M-5</td><td>Wrong-key decapsulation → implicit rejection (25/25 each)</td><td>results.json, WRONG-KEY</td></tr>
+<tr><td>M-6</td><td>Corrupted d-region of key → implicit rejection (25/25 each)</td><td>results.json, CORRUPT-DK-D</td></tr>
+<tr><td>M-7</td><td>Corrupted z-region → valid ciphertext still decapsulates (25/25 MATCH each)</td><td>results.json, CORRUPT-DK-Z</td></tr>
+<tr><td>M-8</td><td>pyca and Go enforce the §7.3 ciphertext length check (175/175 each)</td><td>results.json, WRONG-LENGTH-CT</td></tr>
+<tr><td>M-9</td><td>pyca and Go reject a wrong-length key at load (25/25 each)</td><td>results.json, WRONG-LENGTH-DK</td></tr>
+<tr><td>M-10</td><td>liboqs and Kyber reference do not enforce the §7.3 key hash check (25/25 each)</td><td>results.json, CORRUPT-DK-H; F-1</td></tr>
+<tr><td>M-11</td><td>Fixed-size C APIs cannot take wrong-length inputs; wrapper enforces the checks (400 NOT_INVOKED)</td><td>results.json, WRONG-LENGTH-CT/DK; F-2</td></tr>
+<tr><td>M-12</td><td>Three FIPS 203 implementations agree on shared secrets (both legs)</td><td>results.json, cross_implementation</td></tr>
+<tr><td>M-13</td><td>No crash, unexpected match, or non-32-byte output in 2100 cases</td><td>results.json outcome distribution; run_harness.log</td></tr>
+</table>
+
+<h2>Sources and reproduction</h2>
+<ul>
+<li>FIPS 203 (NIST.FIPS.203, Aug 2024) — <code>outputs/raw/fips-203.pdf</code>
+(SHA-256 <code class="mono">fe1f12f32a7e44ec9fdebbf400cda843a40b506dee676725234dc6f7923b6cac</code>)</li>
+<li>liboqs 0.12.0 — commit <code class="mono">f4b96220e4bd208895172acc4fedb5a191d9f5b1</code></li>
+<li>pq-crystals/kyber — commit <code class="mono">3edd5af5991927164edd4aacebfcbee00b8064e7</code></li>
+<li>pyca/cryptography 50.0.2; Go 1.24.6 stdlib <code>crypto/mlkem</code></li>
+<li>Repository: <a href="https://github.com/araupooo/mlkem-768-adversarial-decapsulation">github.com/araupooo/mlkem-768-adversarial-decapsulation</a></li>
+<li>Key files (direct fetch):
+<a href="https://raw.githubusercontent.com/araupooo/mlkem-768-adversarial-decapsulation/main/matrix.md">matrix.md</a> ·
+<a href="https://raw.githubusercontent.com/araupooo/mlkem-768-adversarial-decapsulation/main/findings.md">findings.md</a> ·
+<a href="https://raw.githubusercontent.com/araupooo/mlkem-768-adversarial-decapsulation/main/outputs/results.json">outputs/results.json</a></li>
+</ul>
+<p>Reproduce: <code>python3 -m venv /tmp/mlkem-prep-venv &amp;&amp; /tmp/mlkem-prep-venv/bin/pip install "cryptography==50.0.2"</code>,
+build liboqs 0.12.0, the Go driver (go1.24.6) and the Kyber driver (gcc) as
+in <code>README.md</code>, then
+<code>/tmp/mlkem-prep-venv/bin/python src/run_harness.py &gt; outputs/run_harness.log</code>.
+Expected: exit 0, <code>TOTAL CASES: 2100</code>,
+<code>CROSS-IMPL ALL THREE AGREE (by transitivity): True</code>.</p>
+</body>
+</html>
